@@ -1,126 +1,167 @@
-import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import React, { useState } from 'react';
+import { LoaderCircle, Eye, EyeOff } from 'lucide-react';
 
-import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import AuthLayout from '@/layouts/auth-layout';
+export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
-type LoginForm = {
-    email: string;
-    password: string;
-    remember: boolean;
-};
+  const handleLogin = () => {
+    setEmailError('');
+    setPasswordError('');
+    
+    let hasError = false;
 
-interface LoginProps {
-    status?: string;
-    canResetPassword: boolean;
-}
+    if (!email) {
+      setEmailError('Email wajib diisi');
+      hasError = true;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError('Format email tidak valid');
+      hasError = true;
+    }
 
-export default function Login({ status, canResetPassword }: LoginProps) {
-    const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
-        email: '',
-        password: '',
-        remember: false,
-    });
+    if (!password) {
+      setPasswordError('Password wajib diisi');
+      hasError = true;
+    } else if (password.length < 6) {
+      setPasswordError('Password minimal 6 karakter');
+      hasError = true;
+    }
 
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
-        post(route('login'), {
-            onFinish: () => reset('password'),
-        });
-    };
+    if (hasError) return;
 
-    return (
-        <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">
-            <Head title="Log in" />
+    setIsLoading(true);
+    
+    // Simulasi login
+    setTimeout(() => {
+      setIsLoading(false);
+      alert('Login berhasil!');
+    }, 2000);
+  };
 
-            <form className="flex flex-col gap-6" onSubmit={submit}>
-                <div className="grid gap-6">
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email address</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            required
-                            autoFocus
-                            tabIndex={1}
-                            autoComplete="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
-                            placeholder="email@example.com"
-                        />
-                        <InputError message={errors.email} />
-                    </div>
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo */}
+        <div className="text-center">
+          <div className="text-3xl font-bold text-gray-900 mb-2">
+            iRent
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-1">
+            Login ke iRent
+          </h2>
+          <p className="text-sm text-gray-600">
+            Masukkan email dan password Anda untuk melanjutkan
+          </p>
+        </div>
 
-                    <div className="grid gap-2">
-                        <div className="flex items-center">
-                            <Label htmlFor="password">Password</Label>
-                            {canResetPassword && (
-                                <TextLink href={route('password.request')} className="ml-auto text-sm" tabIndex={5}>
-                                    Forgot password?
-                                </TextLink>
-                            )}
-                        </div>
-                        <Input
-                            id="password"
-                            type="password"
-                            required
-                            tabIndex={2}
-                            autoComplete="current-password"
-                            value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
-                            placeholder="Password"
-                        />
-                        <InputError message={errors.password} />
-                    </div>
+        {/* Form */}
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+          <div className="space-y-5">
+            {/* Email Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Username
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (emailError) setEmailError('');
+                }}
+                placeholder="email@example.com"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  emailError ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {emailError && (
+                <p className="mt-1 text-sm text-red-600">{emailError}</p>
+              )}
+            </div>
 
-                    <div className="flex items-center space-x-3">
-                        <Checkbox
-                            id="remember"
-                            name="remember"
-                            checked={data.remember}
-                            onClick={() => setData('remember', !data.remember)}
-                            tabIndex={3}
-                        />
-                        <Label htmlFor="remember">Remember me</Label>
-                    </div>
+            {/* Password Field */}
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <button 
+                  className="text-sm text-blue-600 hover:underline"
+                  onClick={() => alert('Fitur lupa password')}
+                >
+                  Lupa?
+                </button>
+              </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (passwordError) setPasswordError('');
+                  }}
+                  placeholder="••••••••"
+                  className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    passwordError ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                <button
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              {passwordError && (
+                <p className="mt-1 text-sm text-red-600">{passwordError}</p>
+              )}
+            </div>
 
-                    <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
-                        {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Log in
-                    </Button>
-                </div>
+            {/* Remember Me */}
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label className="ml-2 block text-sm text-gray-700">
+                Remember me
+              </label>
+            </div>
 
-                <div className="text-muted-foreground text-center text-sm">
-                    Don't have an account?{' '}
-                    <TextLink href={route('register')} tabIndex={5}>
-                        Sign up
-                    </TextLink>
-                </div>
-            </form>
+            {/* Submit Button */}
+            <button
+              onClick={handleLogin}
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2 px-4 rounded-full transition-colors duration-200 flex items-center justify-center"
+            >
+              {isLoading && <LoaderCircle className="h-4 w-4 animate-spin mr-2" />}
+              Login
+            </button>
+          </div>
 
-            {/* Show error popup if account is not verified */}
-            {errors.email === 'Your account is pending verification by admin.' && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="w-full max-w-sm rounded-lg bg-white p-8 text-center shadow-lg border border-gray-300">
-                        <h2 className="mb-2 text-lg font-bold text-red-600">Account Pending Verification</h2>
-                        <p className="mb-4 text-gray-800">
-                            Your registration was successful, but your account must be verified by an admin before you can log in.<br />
-                            Please check back later. If you need urgent access, contact support or the admin team.
-                        </p>
-                        <Button onClick={() => window.location.reload()} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold">
-                            OK
-                        </Button>
-                    </div>
-                </div>
-            )}
-
-            {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
-        </AuthLayout>
-    );
+          {/* Register Link */}
+          <div className="mt-4 text-center text-sm text-gray-600">
+            Belum punya akun?{' '}
+            <button 
+              className="text-blue-600 hover:underline font-medium"
+              onClick={() => alert('Menuju halaman registrasi')}
+            >
+              daftar disini
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
