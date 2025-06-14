@@ -8,7 +8,7 @@ use App\Http\Controllers\DashboardController;
 use \App\Models\User;
 
 // Home
-Route::get('/', fn() => Inertia::render('welcome'))->name('home');
+Route::get('/', fn() => Inertia::render('auth/login'))->name('home');
 
 // Public product routes (move these before auth routes)
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');

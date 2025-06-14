@@ -1,4 +1,5 @@
-import { Head, useForm } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
@@ -32,159 +33,87 @@ export default function Register() {
         role: 'customer',
     });
 
-    const submit: FormEventHandler = (e) => {
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [phone, setPhone] = useState('');
+    const [ktp, setKtp] = useState<File | null>(null);
+    const [ktpError, setKtpError] = useState('');
+
+    const handleKtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && file.size > 5 * 1024 * 1024) {
+            setKtpError('File size must be less than 5 MB');
+            setKtp(null);
+        } else {
+            setKtpError('');
+            setKtp(file || null);
+        }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-            forceFormData: true, // Important for file upload
-        });
+        // No backend connection, just UI
     };
 
     return (
         <AuthLayout title="Create an account" description="Enter your details below to create your account">
             <Head title="Register" />
-            <form className="flex flex-col gap-6" onSubmit={submit} encType="multipart/form-data">
-                <div className="grid gap-6">
-                    <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
-                        <Input
-                            id="name"
-                            type="text"
-                            required
-                            autoFocus
-                            tabIndex={1}
-                            autoComplete="name"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            disabled={processing}
-                            placeholder="Full name"
-                        />
-                        <InputError message={errors.name} className="mt-2" />
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <form
+                    onSubmit={handleSubmit}
+                    style={{ width: 440, background: '#fff', borderRadius: 8, padding: 40, boxShadow: '0 0 0 2px #2221', display: 'flex', flexDirection: 'column', gap: 16 }}
+                    encType="multipart/form-data"
+                >
+                    <h2 style={{ textAlign: 'center', fontWeight: 700, fontSize: 22, marginBottom: 16, color: '#000' }}>Register ke iRent</h2>
+                    <label style={{ fontWeight: 600, fontSize: 14, color: '#000' }}>Username</label>
+                    <input
+                        type="text"
+                        value={username}
+                        onChange={e => setUsername(e.target.value)}
+                        style={{ border: '1px solid #b5d3e7', borderRadius: 6, padding: 10, fontSize: 15, color: '#000', background: '#fff' }}
+                    />
+                    <label style={{ fontWeight: 600, fontSize: 14, color: '#000' }}>Email</label>
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        style={{ border: '1px solid #b5d3e7', borderRadius: 6, padding: 10, fontSize: 15, color: '#000', background: '#fff' }}
+                    />
+                    <label style={{ fontWeight: 600, fontSize: 14, color: '#000' }}>Password</label>
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        style={{ border: '1px solid #b5d3e7', borderRadius: 6, padding: 10, fontSize: 15, color: '#000', background: '#fff' }}
+                    />
+                    <label style={{ fontWeight: 600, fontSize: 14, color: '#000' }}>No. Telp</label>
+                    <input
+                        type="text"
+                        value={phone}
+                        onChange={e => setPhone(e.target.value)}
+                        style={{ border: '1px solid #b5d3e7', borderRadius: 6, padding: 10, fontSize: 15, color: '#000', background: '#fff' }}
+                    />
+                    <label style={{ fontWeight: 600, fontSize: 14, color: '#000' }}>Insert Foto KTP</label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleKtpChange}
+                        style={{ border: '1px solid #b5d3e7', borderRadius: 6, padding: 8, fontSize: 15, color: '#000', background: '#fff' }}
+                        placeholder="(maksimal 5mb)"
+                    />
+                    {ktpError && <div style={{ color: 'red', fontSize: 13 }}>{ktpError}</div>}
+                    <button
+                        type="submit"
+                        style={{ marginTop: 24, background: '#008ad6', color: '#fff', border: 'none', borderRadius: 24, padding: '12px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}
+                    >
+                        Buat Akun
+                    </button>
+                    <div style={{ textAlign: 'center', marginTop: 10, fontSize: 13, color: '#000' }}>
+                        Sudah punya akun? Login <Link href="/login" style={{ textDecoration: 'underline', color: '#000' }}>disini</Link>
                     </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email address</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            required
-                            tabIndex={2}
-                            autoComplete="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
-                            disabled={processing}
-                            placeholder="email@example.com"
-                        />
-                        <InputError message={errors.email} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                            id="phone"
-                            type="text"
-                            required
-                            tabIndex={3}
-                            autoComplete="tel"
-                            value={data.phone}
-                            onChange={(e) => setData('phone', e.target.value)}
-                            disabled={processing}
-                            placeholder="08xxxxxxxxxx"
-                        />
-                        <InputError message={errors.phone} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="address">Address</Label>
-                        <Input
-                            id="address"
-                            type="text"
-                            required
-                            tabIndex={4}
-                            autoComplete="street-address"
-                            value={data.address}
-                            onChange={(e) => setData('address', e.target.value)}
-                            disabled={processing}
-                            placeholder="Your address"
-                        />
-                        <InputError message={errors.address} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="ktp_photo">KTP Photo</Label>
-                        <Input
-                            id="ktp_photo"
-                            type="file"
-                            required
-                            tabIndex={5}
-                            accept="image/*"
-                            onChange={(e) => setData('ktp_photo', e.target.files ? e.target.files[0] : null)}
-                            disabled={processing}
-                        />
-                        <InputError message={errors.ktp_photo} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            required
-                            tabIndex={6}
-                            autoComplete="new-password"
-                            value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
-                            disabled={processing}
-                            placeholder="Password"
-                        />
-                        <InputError message={errors.password} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="password_confirmation">Confirm password</Label>
-                        <Input
-                            id="password_confirmation"
-                            type="password"
-                            required
-                            tabIndex={7}
-                            autoComplete="new-password"
-                            value={data.password_confirmation}
-                            onChange={(e) => setData('password_confirmation', e.target.value)}
-                            disabled={processing}
-                            placeholder="Confirm password"
-                        />
-                        <InputError message={errors.password_confirmation} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="role">Register as</Label>
-                        <select
-                            id="role"
-                            value={data.role}
-                            onChange={(e) => setData('role', e.target.value as 'customer' | 'partner')}
-                            className="rounded border px-3 py-2"
-                            disabled={processing}
-                            required
-                        >
-                            <option value="customer">Customer</option>
-                            <option value="partner">Partner</option>
-                        </select>
-                        <InputError message={errors.role} className="mt-2" />
-                    </div>
-
-                    <Button type="submit" className="mt-2 w-full" tabIndex={8} disabled={processing}>
-                        {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Create account
-                    </Button>
-                </div>
-
-                <div className="text-muted-foreground text-center text-sm">
-                    Already have an account?{' '}
-                    <TextLink href={route('login')} tabIndex={9}>
-                        Log in
-                    </TextLink>
-                </div>
-            </form>
+                </form>
+            </div>
         </AuthLayout>
     );
 }

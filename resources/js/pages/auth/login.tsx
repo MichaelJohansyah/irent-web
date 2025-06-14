@@ -1,126 +1,46 @@
-import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import React, { useState } from 'react';
+import { Link } from '@inertiajs/react';
 
-import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import AuthLayout from '@/layouts/auth-layout';
+export default function Login() {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
 
-type LoginForm = {
-    email: string;
-    password: string;
-    remember: boolean;
-};
-
-interface LoginProps {
-    status?: string;
-    canResetPassword: boolean;
-}
-
-export default function Login({ status, canResetPassword }: LoginProps) {
-    const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
-        email: '',
-        password: '',
-        remember: false,
-    });
-
-    const submit: FormEventHandler = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('login'), {
-            onFinish: () => reset('password'),
-        });
+        // No backend connection, just UI
     };
 
     return (
-        <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">
-            <Head title="Log in" />
-
-            <form className="flex flex-col gap-6" onSubmit={submit}>
-                <div className="grid gap-6">
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email address</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            required
-                            autoFocus
-                            tabIndex={1}
-                            autoComplete="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
-                            placeholder="email@example.com"
-                        />
-                        <InputError message={errors.email} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <div className="flex items-center">
-                            <Label htmlFor="password">Password</Label>
-                            {canResetPassword && (
-                                <TextLink href={route('password.request')} className="ml-auto text-sm" tabIndex={5}>
-                                    Forgot password?
-                                </TextLink>
-                            )}
-                        </div>
-                        <Input
-                            id="password"
-                            type="password"
-                            required
-                            tabIndex={2}
-                            autoComplete="current-password"
-                            value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
-                            placeholder="Password"
-                        />
-                        <InputError message={errors.password} />
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                        <Checkbox
-                            id="remember"
-                            name="remember"
-                            checked={data.remember}
-                            onClick={() => setData('remember', !data.remember)}
-                            tabIndex={3}
-                        />
-                        <Label htmlFor="remember">Remember me</Label>
-                    </div>
-
-                    <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={processing}>
-                        {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Log in
-                    </Button>
-                </div>
-
-                <div className="text-muted-foreground text-center text-sm">
-                    Don't have an account?{' '}
-                    <TextLink href={route('register')} tabIndex={5}>
-                        Sign up
-                    </TextLink>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <form
+                onSubmit={handleSubmit}
+                style={{ width: 400, background: '#fff', borderRadius: 8, padding: 40, boxShadow: '0 0 0 2px #2221', display: 'flex', flexDirection: 'column', gap: 16 }}
+            >
+                <h2 style={{ textAlign: 'center', fontWeight: 700, fontSize: 22, marginBottom: 16, color: '#000' }}>Login ke iRent</h2>
+                <label style={{ fontWeight: 600, fontSize: 14, color: '#000' }}>Username</label>
+                <input
+                    type="text"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    style={{ border: '1px solid #b5d3e7', borderRadius: 6, padding: 10, fontSize: 15, color: '#000', background: '#fff' }}
+                />
+                <label style={{ fontWeight: 600, fontSize: 14, marginTop: 8, color: '#000' }}>Password <span style={{ float: 'right', fontWeight: 400, fontSize: 13 }}><a href="#" style={{ color: '#000', textDecoration: 'underline' }}>Lupa?</a></span></label>
+                <input
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    style={{ border: '1px solid #b5d3e7', borderRadius: 6, padding: 10, fontSize: 15, color: '#000', background: '#fff' }}
+                />
+                <button
+                    type="submit"
+                    style={{ marginTop: 24, background: '#008ad6', color: '#fff', border: 'none', borderRadius: 24, padding: '12px 0', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}
+                >
+                    Login
+                </button>
+                <div style={{ textAlign: 'center', marginTop: 10, fontSize: 13, color: '#000' }}>
+                    Belum punya akun? register <Link href="/register" style={{ textDecoration: 'underline', color: '#000' }}>disini</Link>
                 </div>
             </form>
-
-            {/* Show error popup if account is not verified */}
-            {errors.email === 'Your account is pending verification by admin.' && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="w-full max-w-sm rounded-lg bg-white p-8 text-center shadow-lg border border-gray-300">
-                        <h2 className="mb-2 text-lg font-bold text-red-600">Account Pending Verification</h2>
-                        <p className="mb-4 text-gray-800">
-                            Your registration was successful, but your account must be verified by an admin before you can log in.<br />
-                            Please check back later. If you need urgent access, contact support or the admin team.
-                        </p>
-                        <Button onClick={() => window.location.reload()} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold">
-                            OK
-                        </Button>
-                    </div>
-                </div>
-            )}
-
-            {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
-        </AuthLayout>
+        </div>
     );
 }
