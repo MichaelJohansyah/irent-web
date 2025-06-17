@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Pusher from 'pusher-js';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -9,28 +9,51 @@ export function Chat() {
     const { auth } = usePage<SharedData>().props;
     const [messages, setMessages] = useState<Array<{ username: string; message: string }>>([]);
     const [messageInput, setMessageInput] = useState('');
+    const [isConnected, setIsConnected] = useState(false);
     const username = auth.user?.name || 'Anonymous';
+    const pusherRef = useRef<Pusher | null>(null);
 
     useEffect(() => {
-        const pusher = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
-            cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+        // Initialize Pusher only if it hasn't been initialized
+        if (!pusherRef.current) {
+            pusherRef.current = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
+                cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+            });
+        }
+
+        const pusher = pusherRef.current;
+        
+        // Handle connection state
+        pusher.connection.bind('connected', () => {
+            console.log('Connected to Pusher');
+            setIsConnected(true);
         });
 
+        pusher.connection.bind('disconnected', () => {
+            console.log('Disconnected from Pusher');
+            setIsConnected(false);
+        });
+
+        // Subscribe to channel
         const channel = pusher.subscribe('chat');
-        
-        console.log('Subscribing to chat channel...');
         
         channel.bind('message', (data: { username: string; message: string }) => {
             console.log('Received message:', data);
-            setMessages((prev) => [...prev, data]);
+            if (data.username !== username) {
+                setMessages(prev => [...prev, data]);
+            }
         });
 
+        // Cleanup function
         return () => {
-            console.log('Unsubscribing from chat channel...');
-            channel.unbind_all();
-            channel.unsubscribe();
+            if (pusher) {
+                channel.unbind_all();
+                pusher.unsubscribe('chat');
+                // Don't disconnect here, just clean up event bindings
+                pusher.connection.unbind_all();
+            }
         };
-    }, []);
+    }, [username]);
 
     const sendMessage = () => {
         if (!messageInput.trim()) return;
