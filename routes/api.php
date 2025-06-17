@@ -40,3 +40,5 @@ Route::get('/products', [ProductController::class, 'apiIndex']);
 
 Route::get('/orders', [OrderController::class, 'apiIndex']);
 Route::post('/orders', [OrderController::class, 'apiStore']);
+
+Route::post('messages', [\App\Http\Controllers\ChatController::class, 'message']);
