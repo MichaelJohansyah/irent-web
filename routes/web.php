@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\DashboardController;
 use \App\Models\User;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ChatController;
 
 // Home
 Route::get('/', fn() => Inertia::render('welcome'))->name('home');
@@ -55,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
     // Order routes
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+
+    // Chat routes
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat');
+    Route::post('/chat/message', [ChatController::class, 'message'])->name('chat.message');
 });
 
 // Additional route files

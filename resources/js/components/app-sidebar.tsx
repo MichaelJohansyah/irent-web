@@ -27,7 +27,7 @@ export function AppSidebar() {
         },
         ...(isCustomer
             ? [
-                  { title: 'Chat', href: '#', icon: MessageCircle },
+                  { title: 'Chat', href: '/chat', icon: MessageCircle },
                   { title: 'Order List', href: '/orders', icon: ListOrdered },
                   { title: 'Notification', href: '#', icon: Bell },
               ]
