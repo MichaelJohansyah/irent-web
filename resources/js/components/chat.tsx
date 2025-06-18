@@ -37,11 +37,10 @@ export function Chat() {
         // Subscribe to channel
         const channel = pusher.subscribe('chat');
         
+        // FIXED: Remove the username filter - show ALL messages from Pusher
         channel.bind('message', (data: { username: string; message: string }) => {
             console.log('Received message:', data);
-            if (data.username !== username) {
-                setMessages(prev => [...prev, data]);
-            }
+            setMessages(prev => [...prev, data]);
         });
 
         // Cleanup function
@@ -49,7 +48,6 @@ export function Chat() {
             if (pusher) {
                 channel.unbind_all();
                 pusher.unsubscribe('chat');
-                // Don't disconnect here, just clean up event bindings
                 pusher.connection.unbind_all();
             }
         };
@@ -58,14 +56,14 @@ export function Chat() {
     const sendMessage = () => {
         if (!messageInput.trim()) return;
 
-        // Add message locally first
         const newMessage = {
             username,
             message: messageInput
         };
-        
-        setMessages(prev => [...prev, newMessage]);
 
+        // FIXED: Don't add message locally - let it come back from Pusher
+        // This ensures all users see messages in the same order
+        
         router.post('/chat/message', newMessage, {
             preserveScroll: true,
             onSuccess: () => {
@@ -74,14 +72,20 @@ export function Chat() {
             },
             onError: (errors) => {
                 console.error('Failed to send message:', errors);
-                // Remove the message if it failed to send
-                setMessages(prev => prev.filter(msg => msg !== newMessage));
+                // Could add error handling here
             }
         });
     };
 
     return (
         <div className="flex flex-col h-[600px] w-full max-w-2xl mx-auto p-4 border rounded-lg">
+            {/* Connection status indicator */}
+            <div className="mb-2 text-sm">
+                Status: <span className={isConnected ? 'text-green-600' : 'text-red-600'}>
+                    {isConnected ? 'Connected' : 'Disconnected'}
+                </span>
+            </div>
+            
             <div className="flex-1 overflow-y-auto mb-4 space-y-2">
                 {messages.map((msg, i) => (
                     <div 
@@ -107,7 +111,9 @@ export function Chat() {
                     placeholder="Type a message..."
                     className="flex-1"
                 />
-                <Button onClick={sendMessage}>Send</Button>
+                <Button onClick={sendMessage} disabled={!isConnected}>
+                    Send
+                </Button>
             </div>
         </div>
     );

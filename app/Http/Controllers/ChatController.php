@@ -18,7 +18,7 @@ class ChatController extends Controller
         broadcast(new Message(
             $validated['username'],
             $validated['message']
-        ))->toOthers();
+        ));
 
         // Return back to the previous page with a flash message
         return back()->with('success', 'Message sent');
