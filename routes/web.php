@@ -21,10 +21,6 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard (role-based)
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Notifications
-    Route::get('dashboard/notification', [NotificationController::class, 'index'])->name('dashboard.notification');
-    Route::post('dashboard/notification/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('dashboard.notification.markAllAsRead');
-
     // Product confirm (requires auth)
     Route::get('/products/{id}/confirm', [ProductController::class, 'confirm'])->name('products.confirm');
 
@@ -75,6 +71,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/orders/{order}/partner-cancel', [OrderController::class, 'partnerCancel'])->name('orders.partnerCancel');
     Route::post('/orders/{order}/partner-pickedup', [\App\Http\Controllers\OrderController::class, 'partnerPickedUp'])->name('orders.partnerPickedUp');
     Route::post('/orders/{order}/partner-finish', [\App\Http\Controllers\OrderController::class, 'partnerFinish'])->name('orders.partnerFinish');
+});
+
+// Notification routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
 });
 
 // Additional route files

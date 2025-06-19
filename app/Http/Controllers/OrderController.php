@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use App\Events\OrderCreated;
 
 class OrderController extends Controller
 {
@@ -47,6 +48,9 @@ class OrderController extends Controller
 
         // Reduce product stock
         $product->decrement('stock', 1);
+
+        // Trigger notification event
+        event(new OrderCreated($order));
 
         return redirect()->route('orders.index')->with('success', 'Order placed successfully!');
     }
