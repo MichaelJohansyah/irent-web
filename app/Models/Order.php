@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Events\OrderCreated;
 
 class Order extends Model
 {
@@ -44,6 +45,13 @@ public function product()
 public function messages()
 {
     return $this->hasMany(Message::class);
+}
+
+protected static function booted()
+{
+    static::created(function ($order) {
+        event(new OrderCreated($order));
+    });
 }
 
 }
