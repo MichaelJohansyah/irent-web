@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\DashboardController;
 use \App\Models\User;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\NotificationController;
 
 // Home
 Route::get('/', fn() => Inertia::render('welcome'))->name('home');
@@ -19,6 +20,10 @@ Route::get('/products/{id}', [ProductController::class, 'show'])->name('products
 Route::middleware(['auth'])->group(function () {
     // Dashboard (role-based)
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Notifications
+    Route::get('dashboard/notification', [NotificationController::class, 'index'])->name('dashboard.notification');
+    Route::post('dashboard/notification/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('dashboard.notification.markAllAsRead');
 
     // Product confirm (requires auth)
     Route::get('/products/{id}/confirm', [ProductController::class, 'confirm'])->name('products.confirm');
