@@ -45,6 +45,23 @@ class OrderController extends Controller
             'status' => 'waiting',
         ]);
 
+        // Notifikasi untuk customer
+        \App\Models\Notification::create([
+            'user_id' => Auth::user()->id,
+            'type' => 'order',
+            'data' => [
+                'message' => 'Pesanan Anda untuk produk ' . $product->name . ' telah berhasil dibuat.'
+            ],
+        ]);
+        // Notifikasi untuk partner
+        \App\Models\Notification::create([
+            'user_id' => $product->partner_id,
+            'type' => 'order',
+            'data' => [
+                'message' => 'Ada pesanan baru untuk produk ' . $product->name . ' dari customer ' . Auth::user()->name
+            ],
+        ]);
+
         // Reduce product stock
         $product->decrement('stock', 1);
 
