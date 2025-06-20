@@ -83,9 +83,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/orders/{order}/partner-finish', [\App\Http\Controllers\OrderController::class, 'partnerFinish'])->name('orders.partnerFinish');
 
     // Notifications
-    Route::get('/notifications', function () {
-        return Inertia::render('notifications/index');
-    })->middleware(['auth']);
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->middleware(['auth']);
 });
 
 // Additional route files
