@@ -77,6 +77,7 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
     const [csrfToken, setCsrfToken] = useState<string>('');
     const [countdowns, setCountdowns] = useState<{ [orderId: number]: number }>({});
     const [showConfirm, setShowConfirm] = useState<{ action: null | string; onConfirm: null | (() => void) }>({ action: null, onConfirm: null });
+    const [localOrders, setLocalOrders] = useState<Order[]>(orders);
     const countdownIntervals = useRef<{ [orderId: number]: NodeJS.Timeout }>({});
 
     useEffect(() => {
@@ -86,32 +87,27 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
     }, []);
 
     useEffect(() => {
-        const rentedOrders = orders.filter((o) => o.status === 'rented');
-        rentedOrders.forEach((order) => {
-            if (countdownIntervals.current[order.id]) return; // already running
-            const updateCountdown = () => {
-                const msLeft = getTimeLeft(order.end_date);
-                setCountdowns((prev) => ({ ...prev, [order.id]: msLeft }));
-                if (msLeft <= 0) {
-                    clearInterval(countdownIntervals.current[order.id]);
-                    delete countdownIntervals.current[order.id];
-                    // Auto-update status to return_now
-                    fetch(`/orders/${order.id}/admin/orders/update-status`, {
-                        method: 'POST',
-                        headers: apiHeaders,
-                        credentials: 'same-origin',
-                        body: JSON.stringify({ status: 'return_now' }),
-                    }).then(() => window.location.reload());
-                }
-            };
-            updateCountdown();
-            countdownIntervals.current[order.id] = setInterval(updateCountdown, 1000);
-        });
-        // Cleanup on unmount
-        return () => {
-            Object.values(countdownIntervals.current).forEach(clearInterval);
+        if (!selectedOrder || selectedOrder.status !== 'rented') return;
+        const updateCountdown = () => {
+            const msLeft = getTimeLeft(selectedOrder.end_date);
+            setCountdowns((prev) => ({ ...prev, [selectedOrder.id]: msLeft }));
+            if (msLeft <= 0) {
+                // Auto-update status to return_now
+                fetch(`/orders/${selectedOrder.id}/admin/orders/update-status`, {
+                    method: 'POST',
+                    headers: apiHeaders,
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ status: 'return_now' }),
+                }).then(() => {
+                    setLocalOrders((prev) => prev.map(o => o.id === selectedOrder.id ? { ...o, status: 'return_now' } : o));
+                    setSelectedOrder(null);
+                });
+            }
         };
-    }, [orders, csrfToken]);
+        updateCountdown();
+        const interval = setInterval(updateCountdown, 1000);
+        return () => clearInterval(interval);
+    }, [selectedOrder]);
 
     const handleOpen = (order: Order) => {
         setSelectedOrder(order);
@@ -167,8 +163,8 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
                 setError('Failed to confirm order.');
                 console.error('Confirm error:', data);
             } else {
+                setLocalOrders((prev) => prev.map(o => o.id === selectedOrder?.id ? { ...o, ...form, status: 'ready' } : o));
                 setSelectedOrder(null);
-                window.location.reload();
             }
         } catch (err) {
             setError('Network error.');
@@ -196,8 +192,8 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
                 setError('Failed to save changes.');
                 console.error('Save changes error:', data);
             } else {
+                setLocalOrders((prev) => prev.map(o => o.id === selectedOrder?.id ? { ...o, ...form } : o));
                 setSelectedOrder(null);
-                window.location.reload();
             }
         } catch (err) {
             setError('Network error.');
@@ -219,8 +215,8 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
                 setError('Failed to cancel order.');
                 console.error('Cancel error:', data);
             } else {
+                setLocalOrders((prev) => prev.map(o => o.id === selectedOrder?.id ? { ...o, status: 'canceled' } : o));
                 setSelectedOrder(null);
-                window.location.reload();
             }
         } catch (err) {
             setError('Network error.');
@@ -243,8 +239,8 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
                 setError('Failed to update order to rented.');
                 console.error('Picked up error:', data);
             } else {
+                setLocalOrders((prev) => prev.map(o => o.id === selectedOrder?.id ? { ...o, status: 'rented' } : o));
                 setSelectedOrder(null);
-                window.location.reload();
             }
         } catch (err) {
             setError('Network error.');
@@ -270,8 +266,8 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
                 setError('Failed to finish order.');
                 console.error('Finish error:', data);
             } else {
+                setLocalOrders((prev) => prev.map(o => o.id === selectedOrder?.id ? { ...o, status: 'finished' } : o));
                 setSelectedOrder(null);
-                window.location.reload();
             }
         } catch (err) {
             setError('Network error.');
@@ -285,7 +281,7 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
             <div className="p-8">
                 <h1 className="mb-6 text-2xl font-semibold">Partner Orders</h1>
                 <div className="space-y-4">
-                    {orders.map((order) => {
+                    {localOrders.map((order) => {
                         // Allow clickable for waiting, ready, rented, return_now, and finished
                         const clickable =
                             order.status === 'waiting' ||
