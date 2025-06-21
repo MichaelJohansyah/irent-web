@@ -151,9 +151,9 @@ export default function History({ orders }: HistoryProps) {
                     {filteredOrders.map((order) => (
                         <div
                             key={order.id}
-                            className={`bg-card text-foreground border-sidebar-border/70 flex flex-col items-center gap-4 rounded-xl border p-4 shadow md:flex-row ${order.status === 'ready' || order.status === 'return_now' || order.status === 'finished' ? 'hover:bg-muted/40 cursor-pointer' : ''}`}
+                            className={`bg-card text-foreground border-sidebar-border/70 flex flex-col items-center gap-4 rounded-xl border p-4 shadow md:flex-row ${(order.status === 'ready' || order.status === 'rented' || order.status === 'return_now' || order.status === 'finished') ? 'hover:bg-muted/40 cursor-pointer' : ''}`}
                             onClick={() =>
-                                order.status === 'ready' || order.status === 'return_now' || order.status === 'finished'
+                                (order.status === 'ready' || order.status === 'rented' || order.status === 'return_now' || order.status === 'finished')
                                     ? setSelectedOrder(order)
                                     : undefined
                             }
@@ -200,15 +200,15 @@ export default function History({ orders }: HistoryProps) {
                 <Dialog
                     open={
                         !!selectedOrder &&
-                        (selectedOrder.status === 'ready' || selectedOrder.status === 'return_now' || selectedOrder.status === 'finished')
+                        (selectedOrder.status === 'ready' || selectedOrder.status === 'rented' || selectedOrder.status === 'return_now' || selectedOrder.status === 'finished')
                     }
                     onOpenChange={handleClose}
                 >
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>{selectedOrder?.status === 'finished' ? 'Order Summary' : 'Pickup Information'}</DialogTitle>
+                            <DialogTitle>{selectedOrder?.status === 'finished' ? 'Order Summary' : selectedOrder?.status === 'rented' ? 'Pickup Information' : 'Pickup Information'}</DialogTitle>
                         </DialogHeader>
-                        {selectedOrder?.status === 'finished' ? (
+                        {(selectedOrder?.status === 'finished') ? (
                             <div className="flex flex-col gap-3">
                                 <div>
                                     <span className="font-semibold">Customer Name:</span> {selectedOrder?.customer?.name || '-'}
@@ -218,6 +218,21 @@ export default function History({ orders }: HistoryProps) {
                                 </div>
                                 <div>
                                     <span className="font-semibold">Return Information:</span> {selectedOrder?.return_information || '-'}
+                                </div>
+                            </div>
+                        ) : (selectedOrder?.status === 'rented' ? (
+                            <div className="flex flex-col gap-3">
+                                <div>
+                                    <span className="font-semibold">Pickup Address:</span> {selectedOrder?.pickup_address || '-'}
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Contact Number:</span> {selectedOrder?.contact_number || '-'}
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Pickup Time:</span> {selectedOrder?.pickup_time || '-'}
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Additional Notes:</span> {selectedOrder?.notes || '-'}
                                 </div>
                             </div>
                         ) : (
@@ -241,7 +256,7 @@ export default function History({ orders }: HistoryProps) {
                                     </div>
                                 )}
                             </div>
-                        )}
+                        ))}
                         <DialogFooter>
                             <DialogClose asChild>
                                 <button className="rounded bg-blue-600 px-4 py-2 text-white">Close</button>
