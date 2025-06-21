@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Notification {
     id: number;
@@ -21,7 +21,14 @@ interface NotificationsPageProps {
 
 export default function NotificationsPage({ notifications }: NotificationsPageProps) {
     const [localNotifications, setLocalNotifications] = useState(notifications);
+    const [csrfToken, setCsrfToken] = useState('');
     const unreadCount = localNotifications.filter(n => !n.read_at).length;
+
+    useEffect(() => {
+        // Get CSRF token on component mount
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        setCsrfToken(token);
+    }, []);
 
     const getNotificationIcon = (type: string) => {
         switch (type) {
@@ -59,9 +66,19 @@ export default function NotificationsPage({ notifications }: NotificationsPagePr
         });
     };
 
-    const markAsRead = (notificationId: number) => {
-        router.post(`/notifications/${notificationId}/read`, {}, {
-            onSuccess: () => {
+    const markAsRead = async (notificationId: number) => {
+        try {
+            const response = await fetch(`/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                credentials: 'same-origin',
+            });
+
+            if (response.ok) {
                 setLocalNotifications(prev => 
                     prev.map(n => 
                         n.id === notificationId 
@@ -69,28 +86,60 @@ export default function NotificationsPage({ notifications }: NotificationsPagePr
                             : n
                     )
                 );
+            } else {
+                console.error('Failed to mark notification as read');
             }
-        });
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
     };
 
-    const markAllAsRead = () => {
-        router.post('/notifications/mark-all-read', {}, {
-            onSuccess: () => {
+    const markAllAsRead = async () => {
+        try {
+            const response = await fetch('/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                credentials: 'same-origin',
+            });
+
+            if (response.ok) {
                 setLocalNotifications(prev => 
                     prev.map(n => ({ ...n, read_at: new Date().toISOString() }))
                 );
+            } else {
+                console.error('Failed to mark all notifications as read');
             }
-        });
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+        }
     };
 
-    const deleteNotification = (notificationId: number) => {
-        router.delete(`/notifications/${notificationId}`, {
-            onSuccess: () => {
+    const deleteNotification = async (notificationId: number) => {
+        try {
+            const response = await fetch(`/notifications/${notificationId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                credentials: 'same-origin',
+            });
+
+            if (response.ok) {
                 setLocalNotifications(prev => 
                     prev.filter(n => n.id !== notificationId)
                 );
+            } else {
+                console.error('Failed to delete notification');
             }
-        });
+        } catch (error) {
+            console.error('Error deleting notification:', error);
+        }
     };
 
     return (
