@@ -14,7 +14,7 @@ export function AppSidebar() {
     const isAdmin = userRole === 'admin';
     const partnerNavItems = [
         { title: 'Add Product', href: '/dashboard/add-product', icon: MessageCircle },
-        { title: 'Check Notification', href: '/notifications', icon: Bell },
+        { title: 'Check Notification', href: '#', icon: Bell },
         { title: 'Chat', href: '/chatify', icon: MessageCircle },
         { title: 'Order List', href: '/orders/partner-list', icon: ListOrdered }, // changed link
         { title: 'Send Feedback', href: '/feedback', icon: MessageCircle },
@@ -34,7 +34,7 @@ export function AppSidebar() {
                   { title: 'Send Feedback', href: '/feedback', icon: MessageCircle },
                   { title: 'Chat', href: '/chatify', icon: MessageCircle },
                   { title: 'Order List', href: '/orders', icon: ListOrdered },
-                  { title: 'Notification', href: '/notifications', icon: Bell },
+                  { title: 'Notification', href: '#', icon: Bell },
               ]
             : []),
         ...(isAdmin
