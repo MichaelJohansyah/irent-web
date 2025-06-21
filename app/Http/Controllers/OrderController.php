@@ -154,10 +154,32 @@ class OrderController extends Controller
             $order->return_information = $request->return_information;
         }
         // Only set status to 'ready' if requested and only from 'waiting'
+        $statusChanged = false;
         if ($request->has('status') && $request->status === 'ready' && $order->status === 'waiting') {
             $order->status = 'ready';
+            $statusChanged = true;
         }
         $order->save();
+
+        // Notifikasi jika order diterima partner
+        if ($statusChanged) {
+            // Untuk customer
+            \App\Models\Notification::create([
+                'user_id' => $order->customer_id,
+                'type' => 'order',
+                'data' => [
+                    'message' => 'Pesanan Anda untuk produk ' . $order->product->name . ' telah diterima partner. Catatan: ' . ($order->notes ?: '-')
+                ],
+            ]);
+            // Untuk partner
+            \App\Models\Notification::create([
+                'user_id' => $order->partner_id,
+                'type' => 'order',
+                'data' => [
+                    'message' => 'Anda telah menerima pesanan untuk produk ' . $order->product->name . '. Catatan yang Anda masukkan: ' . ($order->notes ?: '-')
+                ],
+            ]);
+        }
         return response()->json(['success' => true]);
     }
 
@@ -165,6 +187,22 @@ class OrderController extends Controller
     {
         $order->status = 'canceled';
         $order->save();
+        // Notifikasi pembatalan untuk customer
+        \App\Models\Notification::create([
+            'user_id' => $order->customer_id,
+            'type' => 'order',
+            'data' => [
+                'message' => 'Pesanan Anda untuk produk ' . $order->product->name . ' telah dibatalkan oleh partner.'
+            ],
+        ]);
+        // Notifikasi pembatalan untuk partner
+        \App\Models\Notification::create([
+            'user_id' => $order->partner_id,
+            'type' => 'order',
+            'data' => [
+                'message' => 'Anda telah membatalkan pesanan untuk produk ' . $order->product->name . '.'
+            ],
+        ]);
         return response()->json(['success' => true]);
     }
     public function partnerOrderList(Request $request)
@@ -188,6 +226,22 @@ class OrderController extends Controller
         }
         $order->status = 'rented';
         $order->save();
+        // Notifikasi untuk customer
+        \App\Models\Notification::create([
+            'user_id' => $order->customer_id,
+            'type' => 'order',
+            'data' => [
+                'message' => 'Pesanan Anda untuk produk ' . $order->product->name . ' telah diambil. Selamat menggunakan produk!'
+            ],
+        ]);
+        // Notifikasi untuk partner
+        \App\Models\Notification::create([
+            'user_id' => $order->partner_id,
+            'type' => 'order',
+            'data' => [
+                'message' => 'Pesanan untuk produk ' . $order->product->name . ' telah diambil oleh customer.'
+            ],
+        ]);
         return response()->json(['success' => true]);
     }
 
