@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Http\Resources\UserResource;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
+use App\Http\Resources\NotificationResource;
+use App\Models\Notification;
 
 
 
@@ -40,3 +42,11 @@ Route::get('/products', [ProductController::class, 'apiIndex']);
 
 Route::get('/orders', [OrderController::class, 'apiIndex']);
 Route::post('/orders', [OrderController::class, 'apiStore']);
+
+Route::get('/notifications', function (Request $request) {
+    $user = $request->user();
+    $notifications = Notification::where('user_id', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->get();
+    return NotificationResource::collection($notifications);
+})->middleware('auth:sanctum');
