@@ -81,6 +81,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/orders/{order}/partner-cancel', [OrderController::class, 'partnerCancel'])->name('orders.partnerCancel');
     Route::post('/orders/{order}/partner-pickedup', [\App\Http\Controllers\OrderController::class, 'partnerPickedUp'])->name('orders.partnerPickedUp');
     Route::post('/orders/{order}/partner-finish', [\App\Http\Controllers\OrderController::class, 'partnerFinish'])->name('orders.partnerFinish');
+    // Partner: set order to return_now
+    Route::post('/orders/{order}/partner-return-now', [\App\Http\Controllers\OrderController::class, 'partnerReturnNow'])->middleware(['auth']);
 });
 
 // Additional route files

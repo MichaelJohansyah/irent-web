@@ -85,6 +85,7 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
         setCsrfToken(token);
     }, []);
 
+    // Remove auto-update for rented orders, just update countdown for display
     useEffect(() => {
         const rentedOrders = orders.filter((o) => o.status === 'rented');
         rentedOrders.forEach((order) => {
@@ -92,17 +93,6 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
             const updateCountdown = () => {
                 const msLeft = getTimeLeft(order.end_date);
                 setCountdowns((prev) => ({ ...prev, [order.id]: msLeft }));
-                if (msLeft <= 0) {
-                    clearInterval(countdownIntervals.current[order.id]);
-                    delete countdownIntervals.current[order.id];
-                    // Auto-update status to return_now
-                    fetch(`/orders/${order.id}/admin/orders/update-status`, {
-                        method: 'POST',
-                        headers: apiHeaders,
-                        credentials: 'same-origin',
-                        body: JSON.stringify({ status: 'return_now' }),
-                    }).then(() => window.location.reload());
-                }
             };
             updateCountdown();
             countdownIntervals.current[order.id] = setInterval(updateCountdown, 1000);
@@ -111,7 +101,7 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
         return () => {
             Object.values(countdownIntervals.current).forEach(clearInterval);
         };
-    }, [orders, csrfToken]);
+    }, [orders]);
 
     const handleOpen = (order: Order) => {
         setSelectedOrder(order);
@@ -141,12 +131,6 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
             },
         });
     };
-    // Reusable headers for fetch requests
-    const apiHeaders = {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-TOKEN': csrfToken,
-    };
 
     // Separate confirm and save changes logic
     const handleConfirmOrder = async () => {
@@ -158,7 +142,11 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
         try {
             const res = await fetch(`/orders/${selectedOrder?.id}/partner-confirm`, {
                 method: 'POST',
-                headers: apiHeaders,
+                headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
                 credentials: 'same-origin',
                 body: JSON.stringify({ ...form, status: 'ready' }),
             });
@@ -185,7 +173,11 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
         try {
             const res = await fetch(`/orders/${selectedOrder?.id}/partner-confirm`, {
                 method: 'POST',
-                headers: apiHeaders,
+                headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
                 credentials: 'same-origin',
                 body: JSON.stringify({
                     ...form, // includes return_information
@@ -210,7 +202,11 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
         try {
             const res = await fetch(`/orders/${selectedOrder?.id}/partner-cancel`, {
                 method: 'POST',
-                headers: apiHeaders,
+                headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
                 credentials: 'same-origin',
                 body: JSON.stringify({ status: 'canceled' }),
             });
@@ -234,7 +230,11 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
         try {
             const res = await fetch(`/orders/${selectedOrder?.id}/partner-pickedup`, {
                 method: 'POST',
-                headers: apiHeaders,
+                headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
                 credentials: 'same-origin',
                 body: JSON.stringify({ status: 'rented' }),
             });
@@ -258,7 +258,11 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
         try {
             const res = await fetch(`/orders/${selectedOrder?.id}/partner-finish`, {
                 method: 'POST',
-                headers: apiHeaders,
+                headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
                 credentials: 'same-origin',
                 body: JSON.stringify({
                     status: 'finished',
@@ -269,6 +273,35 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
             if (!res.ok || !data.success) {
                 setError('Failed to finish order.');
                 console.error('Finish error:', data);
+            } else {
+                setSelectedOrder(null);
+                window.location.reload();
+            }
+        } catch (err) {
+            setError('Network error.');
+            console.error('Network error:', err);
+        }
+        setProcessing(false);
+    };
+    // Add manual handler for partner to set status to 'return_now'
+    const handleSetReturnNow = async () => {
+        if (!selectedOrder) return;
+        setProcessing(true);
+        try {
+            const res = await fetch(`/orders/${selectedOrder.id}/partner-return-now`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ status: 'return_now' }),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                setError('Failed to set order to return_now.');
+                console.error('Set return_now error:', data);
             } else {
                 setSelectedOrder(null);
                 window.location.reload();
@@ -468,6 +501,17 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
                                 >
                                     {processing && showConfirm.action === 'pickedup' ? <span className="loader mr-2"></span> : null}
                                     Customer Picked Up
+                                </button>
+                            )}
+                            {/* Add manual button for rented -> return_now */}
+                            {selectedOrder?.status === 'rented' && (
+                                <button
+                                    onClick={() => confirmAction('return_now', handleSetReturnNow)}
+                                    className="flex cursor-pointer items-center justify-center rounded bg-yellow-500 px-4 py-2 text-white"
+                                    disabled={processing && showConfirm.action === 'return_now'}
+                                >
+                                    {processing && showConfirm.action === 'return_now' ? <span className="loader mr-2"></span> : null}
+                                    Set as Return Now
                                 </button>
                             )}
                             {selectedOrder?.status === 'return_now' && (

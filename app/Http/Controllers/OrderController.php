@@ -188,4 +188,21 @@ class OrderController extends Controller
         $order->save();
         return response()->json(['success' => true]);
     }
+    /**
+     * Set order status to 'return_now' (partner action)
+     * POST /orders/{order}/partner-return-now
+     */
+    public function partnerReturnNow(Request $request, Order $order)
+    {
+        // Only allow if current user is the partner for this order
+        if (auth()->id() !== $order->partner_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+        if ($order->status !== 'rented') {
+            return response()->json(['success' => false, 'message' => 'Order is not rented'], 400);
+        }
+        $order->status = 'return_now';
+        $order->save();
+        return response()->json(['success' => true, 'order' => $order]);
+    }
 }
