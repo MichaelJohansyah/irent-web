@@ -143,10 +143,10 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
             const res = await fetch(`/orders/${selectedOrder?.id}/partner-confirm`, {
                 method: 'POST',
                 headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfToken,
-                        },
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
                 credentials: 'same-origin',
                 body: JSON.stringify({ ...form, status: 'ready' }),
             });
@@ -174,10 +174,10 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
             const res = await fetch(`/orders/${selectedOrder?.id}/partner-confirm`, {
                 method: 'POST',
                 headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfToken,
-                        },
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
                 credentials: 'same-origin',
                 body: JSON.stringify({
                     ...form, // includes return_information
@@ -203,10 +203,10 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
             const res = await fetch(`/orders/${selectedOrder?.id}/partner-cancel`, {
                 method: 'POST',
                 headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfToken,
-                        },
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
                 credentials: 'same-origin',
                 body: JSON.stringify({ status: 'canceled' }),
             });
@@ -231,10 +231,10 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
             const res = await fetch(`/orders/${selectedOrder?.id}/partner-pickedup`, {
                 method: 'POST',
                 headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfToken,
-                        },
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
                 credentials: 'same-origin',
                 body: JSON.stringify({ status: 'rented' }),
             });
@@ -259,10 +259,10 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
             const res = await fetch(`/orders/${selectedOrder?.id}/partner-finish`, {
                 method: 'POST',
                 headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfToken,
-                        },
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
                 credentials: 'same-origin',
                 body: JSON.stringify({
                     status: 'finished',
@@ -363,16 +363,16 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
                                                 order.status === 'waiting'
                                                     ? 'bg-gray-800 text-white'
                                                     : order.status === 'ready'
-                                                        ? 'bg-blue-600 text-white'
-                                                        : order.status === 'rented'
-                                                            ? 'bg-green-600 text-white'
-                                                            : order.status === 'return_now'
-                                                                ? 'bg-yellow-400 text-gray-900'
-                                                                : order.status === 'finished'
-                                                                    ? 'bg-white text-gray-900 border border-gray-300'
-                                                                    : order.status === 'canceled'
-                                                                        ? 'bg-red-600 text-white'
-                                                                        : ''
+                                                      ? 'bg-blue-600 text-white'
+                                                      : order.status === 'rented'
+                                                        ? 'bg-green-600 text-white'
+                                                        : order.status === 'return_now'
+                                                          ? 'bg-yellow-400 text-gray-900'
+                                                          : order.status === 'finished'
+                                                            ? 'border border-gray-300 bg-white text-gray-900'
+                                                            : order.status === 'canceled'
+                                                              ? 'bg-red-600 text-white'
+                                                              : ''
                                             }`}
                                         >
                                             {order.status}

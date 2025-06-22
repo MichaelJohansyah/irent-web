@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -222,7 +223,7 @@ class OrderController extends Controller
             return redirect()->back()->with('success', 'Order status updated.');
             
         } catch (\Exception $e) {
-            \Log::error('Update status error: ' . $e->getMessage());
+            Log::error('Update status error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to update order status.');
         }
     }
@@ -301,7 +302,7 @@ class OrderController extends Controller
             return response()->json(['success' => true]);
             
         } catch (\Exception $e) {
-            \Log::error('Partner confirm error: ' . $e->getMessage());
+            Log::error('Partner confirm error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
@@ -340,7 +341,7 @@ class OrderController extends Controller
             return response()->json(['success' => true]);
             
         } catch (\Exception $e) {
-            \Log::error('Partner cancel error: ' . $e->getMessage());
+            Log::error('Partner cancel error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
@@ -360,43 +361,43 @@ class OrderController extends Controller
     public function partnerPickedUp(Request $request, Order $order)
     {
         try {
-            // Only allow if current status is 'ready'
-            if ($order->status !== 'ready') {
-                return response()->json(['success' => false, 'message' => 'Order is not ready for pickup.'], 400);
-            }
-            
-            // Ensure relationships are loaded
+            // Allow any status to be changed to 'rented' by partner
             $order->load(['product', 'customer']);
-            
+            if (!$order->product || !$order->customer) {
+                return response()->json(['success' => false, 'message' => 'Order product or customer not found.'], 400);
+            }
             $order->status = 'rented';
             $order->save();
-
-            // Notify customer that the rental has started
-            Notification::create([
-                'user_id' => $order->customer_id,
-                'type' => 'order_status',
-                'data' => [
-                    'message' => 'Your rental for ' . ($order->product ? $order->product->name : 'product') . ' has started.',
-                    'details' => 'The rental period will end on ' . $order->end_date->format('d M Y'),
-                    'order_id' => $order->id,
-                ],
-            ]);
-
-            // Notify partner about rental status change
-            Notification::create([
-                'user_id' => $order->partner_id,
-                'type' => 'order_status',
-                'data' => [
-                    'message' => 'You marked ' . ($order->product ? $order->product->name : 'product') . ' as picked up.',
-                    'details' => 'Rental has started for customer: ' . ($order->customer ? $order->customer->name : 'customer') . '. Return due: ' . $order->end_date->format('d M Y'),
-                    'order_id' => $order->id,
-                ],
-            ]);
-
+            try {
+                $productName = $order->product ? $order->product->name : 'product';
+                $customerName = $order->customer ? $order->customer->name : 'customer';
+                $endDate = $order->end_date ? (\Carbon\Carbon::parse($order->end_date)->format('d M Y')) : '';
+                // Notify customer that the rental has started
+                Notification::create([
+                    'user_id' => $order->customer_id,
+                    'type' => 'order_status',
+                    'data' => [
+                        'message' => 'Your rental for ' . $productName . ' has started.',
+                        'details' => $endDate ? ('The rental period will end on ' . $endDate) : 'The rental period has started.',
+                        'order_id' => $order->id,
+                    ],
+                ]);
+                // Notify partner about rental status change
+                Notification::create([
+                    'user_id' => $order->partner_id,
+                    'type' => 'order_status',
+                    'data' => [
+                        'message' => 'You marked ' . $productName . ' as picked up.',
+                        'details' => 'Rental has started for customer: ' . $customerName . ($endDate ? ('. Return due: ' . $endDate) : ''),
+                        'order_id' => $order->id,
+                    ],
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Notification creation error (partnerPickedUp): ' . $e->getMessage());
+            }
             return response()->json(['success' => true]);
-            
         } catch (\Exception $e) {
-            \Log::error('Partner picked up error: ' . $e->getMessage());
+            Log::error('Partner picked up error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
@@ -444,7 +445,7 @@ class OrderController extends Controller
             return response()->json(['success' => true]);
             
         } catch (\Exception $e) {
-            \Log::error('Partner finish error: ' . $e->getMessage());
+            Log::error('Partner finish error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
@@ -461,8 +462,33 @@ class OrderController extends Controller
         if ($order->status !== 'rented') {
             return response()->json(['success' => false, 'message' => 'Order is not rented'], 400);
         }
+        // Ensure relationships are loaded
+        $order->load(['product', 'customer']);
         $order->status = 'return_now';
         $order->save();
+
+        // Notify customer that rental period has ended
+        Notification::create([
+            'user_id' => $order->customer_id,
+            'type' => 'order_status',
+            'data' => [
+                'message' => 'Rental period for ' . ($order->product ? $order->product->name : 'product') . ' has ended.',
+                'details' => 'Please return the item to the partner as soon as possible.',
+                'order_id' => $order->id,
+            ],
+        ]);
+
+        // Notify partner that rental period has ended
+        Notification::create([
+            'user_id' => $order->partner_id,
+            'type' => 'order_status',
+            'data' => [
+                'message' => 'Rental period for ' . ($order->product ? $order->product->name : 'product') . ' has ended.',
+                'details' => 'Customer: ' . ($order->customer ? $order->customer->name : 'customer') . ' should return the item soon.',
+                'order_id' => $order->id,
+            ],
+        ]);
+
         return response()->json(['success' => true, 'order' => $order]);
     }
 }
