@@ -195,7 +195,7 @@ class OrderController extends Controller
     public function partnerReturnNow(Request $request, Order $order)
     {
         // Only allow if current user is the partner for this order
-        if (auth()->id() !== $order->partner_id) {
+        if (Auth::id() !== $order->partner_id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
         if ($order->status !== 'rented') {
