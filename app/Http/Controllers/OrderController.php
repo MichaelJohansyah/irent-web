@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Notification;
 use App\Http\Resources\OrderResource;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -47,6 +48,28 @@ class OrderController extends Controller
 
         // Reduce product stock
         $product->decrement('stock', 1);
+
+        // Create notification for the partner
+        Notification::create([
+            'user_id' => $product->partner_id,
+            'type' => 'order_status',
+            'data' => [
+                'message' => 'You have a new order for ' . $product->name,
+                'details' => 'Order ID: ' . $order->id . '. Please confirm the order.',
+                'order_id' => $order->id,
+            ],
+        ]);
+
+        // Create notification for the customer
+        Notification::create([
+            'user_id' => $order->customer_id,
+            'type' => 'order_status',
+            'data' => [
+                'message' => 'Your order for ' . $product->name . ' has been placed.',
+                'details' => 'Your order is now waiting for confirmation from the partner.',
+                'order_id' => $order->id,
+            ],
+        ]);
 
         return redirect()->route('orders.index')->with('success', 'Order placed successfully!');
     }
@@ -113,42 +136,213 @@ class OrderController extends Controller
     }
     public function updateStatus(Request $request, Order $order)
     {
-        $request->validate([
-            'status' => 'required|in:waiting,ready,rented,return_now,finished'
-        ]);
-        $order->status = $request->status;
-        $order->save();
-        return redirect()->back()->with('success', 'Order status updated.');
+        try {
+            $request->validate([
+                'status' => 'required|in:waiting,ready,rented,return_now,finished'
+            ]);
+            
+            // Ensure relationships are loaded
+            $order->load(['product', 'customer']);
+            
+            $oldStatus = $order->status;
+            $order->status = $request->status;
+            $order->save();
+
+            // Send notifications based on status change
+            if ($oldStatus !== $request->status) {
+                if ($request->status === 'return_now') {
+                    // Notify customer that rental period has ended
+                    Notification::create([
+                        'user_id' => $order->customer_id,
+                        'type' => 'order_status',
+                        'data' => [
+                            'message' => 'Rental period for ' . ($order->product ? $order->product->name : 'product') . ' has ended.',
+                            'details' => 'Please return the item to the partner as soon as possible.',
+                            'order_id' => $order->id,
+                        ],
+                    ]);
+
+                    // Notify partner that rental period has ended
+                    Notification::create([
+                        'user_id' => $order->partner_id,
+                        'type' => 'order_status',
+                        'data' => [
+                            'message' => 'Rental period for ' . ($order->product ? $order->product->name : 'product') . ' has ended.',
+                            'details' => 'Customer: ' . ($order->customer ? $order->customer->name : 'customer') . ' should return the item soon.',
+                            'order_id' => $order->id,
+                        ],
+                    ]);
+                } elseif ($request->status === 'finished') {
+                    // Notify customer about completion
+                    Notification::create([
+                        'user_id' => $order->customer_id,
+                        'type' => 'order_status',
+                        'data' => [
+                            'message' => 'Your rental for ' . ($order->product ? $order->product->name : 'product') . ' has been completed.',
+                            'details' => 'Thank you for using our service!',
+                            'order_id' => $order->id,
+                        ],
+                    ]);
+
+                    // Notify partner about completion
+                    Notification::create([
+                        'user_id' => $order->partner_id,
+                        'type' => 'order_status',
+                        'data' => [
+                            'message' => 'Order for ' . ($order->product ? $order->product->name : 'product') . ' has been completed.',
+                            'details' => 'Customer: ' . ($order->customer ? $order->customer->name : 'customer') . ' - order is now finished.',
+                            'order_id' => $order->id,
+                        ],
+                    ]);
+                } elseif ($request->status === 'canceled') {
+                    // Notify customer about cancellation
+                    Notification::create([
+                        'user_id' => $order->customer_id,
+                        'type' => 'order_status',
+                        'data' => [
+                            'message' => 'Your order for ' . ($order->product ? $order->product->name : 'product') . ' has been canceled.',
+                            'details' => 'Please contact support if you have any questions.',
+                            'order_id' => $order->id,
+                        ],
+                    ]);
+
+                    // Notify partner about cancellation
+                    Notification::create([
+                        'user_id' => $order->partner_id,
+                        'type' => 'order_status',
+                        'data' => [
+                            'message' => 'Order for ' . ($order->product ? $order->product->name : 'product') . ' has been canceled.',
+                            'details' => 'Customer: ' . ($order->customer ? $order->customer->name : 'customer') . ' - order is now canceled.',
+                            'order_id' => $order->id,
+                        ],
+                    ]);
+                }
+            }
+
+            return redirect()->back()->with('success', 'Order status updated.');
+            
+        } catch (\Exception $e) {
+            \Log::error('Update status error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update order status.');
+        }
     }
     public function partnerConfirm(Request $request, Order $order)
     {
-        $request->validate([
-            'pickup_address' => 'required|string',
-            'contact_number' => 'required|string',
-            'pickup_time' => 'required|string',
-            'notes' => 'nullable|string',
-            'return_information' => 'nullable|string', // allow this field
-        ]);
-        $order->pickup_address = $request->pickup_address;
-        $order->contact_number = $request->contact_number;
-        $order->pickup_time = $request->pickup_time;
-        $order->notes = $request->notes;
-        if ($request->has('return_information')) {
-            $order->return_information = $request->return_information;
+        try {
+            $request->validate([
+                'pickup_address' => 'required|string',
+                'contact_number' => 'required|string',
+                'pickup_time' => 'required|string',
+                'notes' => 'nullable|string',
+                'return_information' => 'nullable|string', // allow this field
+            ]);
+
+            // Ensure relationships are loaded
+            $order->load(['product', 'customer']);
+
+            $order->pickup_address = $request->pickup_address;
+            $order->contact_number = $request->contact_number;
+            $order->pickup_time = $request->pickup_time;
+            $order->notes = $request->notes;
+            if ($request->has('return_information')) {
+                $order->return_information = $request->return_information;
+            }
+            
+            // Only set status to 'ready' if requested and only from 'waiting'
+            if ($request->has('status') && $request->status === 'ready' && $order->status === 'waiting') {
+                $order->status = 'ready';
+
+                // Notify customer that the order is confirmed
+                Notification::create([
+                    'user_id' => $order->customer_id,
+                    'type' => 'order_status',
+                    'data' => [
+                        'message' => 'Your order for ' . ($order->product ? $order->product->name : 'product') . ' has been confirmed.',
+                        'details' => 'The item is now ready for pickup. Please contact the partner.',
+                        'order_id' => $order->id,
+                    ],
+                ]);
+
+                // Notify partner about their confirmation action
+                Notification::create([
+                    'user_id' => $order->partner_id,
+                    'type' => 'order_status',
+                    'data' => [
+                        'message' => 'You confirmed order for ' . ($order->product ? $order->product->name : 'product') . '.',
+                        'details' => 'Order is now ready for customer pickup. Customer: ' . ($order->customer ? $order->customer->name : 'customer'),
+                        'order_id' => $order->id,
+                    ],
+                ]);
+            } else {
+                // If just updating information without status change, notify customer
+                Notification::create([
+                    'user_id' => $order->customer_id,
+                    'type' => 'order_status',
+                    'data' => [
+                        'message' => 'Pickup information for ' . ($order->product ? $order->product->name : 'product') . ' has been updated.',
+                        'details' => 'The partner has updated the pickup details for your order.',
+                        'order_id' => $order->id,
+                    ],
+                ]);
+
+                // Notify partner about their update action
+                Notification::create([
+                    'user_id' => $order->partner_id,
+                    'type' => 'order_status',
+                    'data' => [
+                        'message' => 'You updated pickup information for ' . ($order->product ? $order->product->name : 'product') . '.',
+                        'details' => 'Pickup details have been successfully updated for customer: ' . ($order->customer ? $order->customer->name : 'customer'),
+                        'order_id' => $order->id,
+                    ],
+                ]);
+            }
+            
+            $order->save();
+            return response()->json(['success' => true]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Partner confirm error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-        // Only set status to 'ready' if requested and only from 'waiting'
-        if ($request->has('status') && $request->status === 'ready' && $order->status === 'waiting') {
-            $order->status = 'ready';
-        }
-        $order->save();
-        return response()->json(['success' => true]);
     }
 
     public function partnerCancel(Request $request, Order $order)
     {
-        $order->status = 'canceled';
-        $order->save();
-        return response()->json(['success' => true]);
+        try {
+            // Ensure relationships are loaded
+            $order->load(['product', 'customer']);
+            
+            $order->status = 'canceled';
+            $order->save();
+
+            // Notify customer that the order was canceled
+            Notification::create([
+                'user_id' => $order->customer_id,
+                'type' => 'order_status',
+                'data' => [
+                    'message' => 'Your order for ' . ($order->product ? $order->product->name : 'product') . ' has been canceled.',
+                    'details' => 'The partner has canceled this order. Please contact them for more information.',
+                    'order_id' => $order->id,
+                ],
+            ]);
+
+            // Notify partner about their cancellation action
+            Notification::create([
+                'user_id' => $order->partner_id,
+                'type' => 'order_status',
+                'data' => [
+                    'message' => 'You canceled order for ' . ($order->product ? $order->product->name : 'product') . '.',
+                    'details' => 'Order has been canceled. Customer: ' . ($order->customer ? $order->customer->name : 'customer'),
+                    'order_id' => $order->id,
+                ],
+            ]);
+
+            return response()->json(['success' => true]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Partner cancel error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
     public function partnerOrderList(Request $request)
     {
@@ -165,28 +359,94 @@ class OrderController extends Controller
     // Partner marks order as picked up (status: rented)
     public function partnerPickedUp(Request $request, Order $order)
     {
-        // Only allow if current status is 'ready'
-        if ($order->status !== 'ready') {
-            return response()->json(['success' => false, 'message' => 'Order is not ready for pickup.'], 400);
+        try {
+            // Only allow if current status is 'ready'
+            if ($order->status !== 'ready') {
+                return response()->json(['success' => false, 'message' => 'Order is not ready for pickup.'], 400);
+            }
+            
+            // Ensure relationships are loaded
+            $order->load(['product', 'customer']);
+            
+            $order->status = 'rented';
+            $order->save();
+
+            // Notify customer that the rental has started
+            Notification::create([
+                'user_id' => $order->customer_id,
+                'type' => 'order_status',
+                'data' => [
+                    'message' => 'Your rental for ' . ($order->product ? $order->product->name : 'product') . ' has started.',
+                    'details' => 'The rental period will end on ' . $order->end_date->format('d M Y'),
+                    'order_id' => $order->id,
+                ],
+            ]);
+
+            // Notify partner about rental status change
+            Notification::create([
+                'user_id' => $order->partner_id,
+                'type' => 'order_status',
+                'data' => [
+                    'message' => 'You marked ' . ($order->product ? $order->product->name : 'product') . ' as picked up.',
+                    'details' => 'Rental has started for customer: ' . ($order->customer ? $order->customer->name : 'customer') . '. Return due: ' . $order->end_date->format('d M Y'),
+                    'order_id' => $order->id,
+                ],
+            ]);
+
+            return response()->json(['success' => true]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Partner picked up error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-        $order->status = 'rented';
-        $order->save();
-        return response()->json(['success' => true]);
     }
 
     // Partner finishes order (status: finished)
     public function partnerFinish(Request $request, Order $order)
     {
-        // Only allow if current status is 'return_now'
-        if ($order->status !== 'return_now') {
-            return response()->json(['success' => false, 'message' => 'Order is not ready to be finished.'], 400);
+        try {
+            // Only allow if current status is 'return_now'
+            if ($order->status !== 'return_now') {
+                return response()->json(['success' => false, 'message' => 'Order is not ready to be finished.'], 400);
+            }
+            
+            // Ensure relationships are loaded
+            $order->load(['product', 'customer']);
+            
+            if ($request->has('return_information')) {
+                $order->return_information = $request->return_information;
+            }
+            $order->status = 'finished';
+            $order->save();
+
+            // Notify customer that the rental has finished
+            Notification::create([
+                'user_id' => $order->customer_id,
+                'type' => 'order_status',
+                'data' => [
+                    'message' => 'Your rental for ' . ($order->product ? $order->product->name : 'product') . ' has finished.',
+                    'details' => 'Thank you for your order!',
+                    'order_id' => $order->id,
+                ],
+            ]);
+
+            // Notify partner about completion
+            Notification::create([
+                'user_id' => $order->partner_id,
+                'type' => 'order_status',
+                'data' => [
+                    'message' => 'You completed order for ' . ($order->product ? $order->product->name : 'product') . '.',
+                    'details' => 'Order has been successfully finished. Customer: ' . ($order->customer ? $order->customer->name : 'customer'),
+                    'order_id' => $order->id,
+                ],
+            ]);
+
+            return response()->json(['success' => true]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Partner finish error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-        if ($request->has('return_information')) {
-            $order->return_information = $request->return_information;
-        }
-        $order->status = 'finished';
-        $order->save();
-        return response()->json(['success' => true]);
     }
     /**
      * Set order status to 'return_now' (partner action)
