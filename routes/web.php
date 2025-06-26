@@ -10,8 +10,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\NotificationController;
 
-// Home
-Route::get('/', fn() => Inertia::render('welcome'))->name('home');
+Route::get('/', function () {return redirect('/login');})->name('home');
 
 // Public product routes 
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
