@@ -22,13 +22,19 @@ export function AppSidebar() {
     const adminNavItems = [
         { title: 'Manage Users', href: '/admin/users', icon: Bell },
         { title: 'Manage Order', href: '/admin/orders', icon: ListOrdered },
+        { title: 'User Feedback', href: '/admin/feedback', icon: MessageCircle },
     ];
     const mainNavItems = [
-        {
-            title: 'Dashboard',
-            href: '/dashboard',
-            icon: LayoutGrid,
-        },
+        // Only show Dashboard for non-admins
+        ...(!isAdmin
+            ? [
+                  {
+                      title: 'Dashboard',
+                      href: '/dashboard',
+                      icon: LayoutGrid,
+                  },
+              ]
+            : []),
         ...(isCustomer
             ? [
                   { title: 'Send Feedback', href: '/feedback', icon: MessageCircle },
@@ -37,13 +43,7 @@ export function AppSidebar() {
                   { title: 'Notification', href: '/notifications', icon: Bell },
               ]
             : []),
-        ...(isAdmin
-            ? [
-                  { title: 'Manage Users', href: '/admin/users', icon: Bell },
-                  { title: 'Manage Order', href: '/admin/orders', icon: ListOrdered },
-                  { title: 'User Feedback', href: '/admin/feedback', icon: MessageCircle },
-              ]
-            : []),
+        ...(isAdmin ? adminNavItems : []),
         ...(isPartner ? partnerNavItems : []),
     ];
 
