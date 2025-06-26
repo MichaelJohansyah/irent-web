@@ -39,7 +39,7 @@ class OrderController extends Controller
         $order = Order::create([
             'customer_id' => Auth::user()->id,
             'product_id' => $request->product_id,
-            'partner_id' => $product->partner_id, // Set from product
+            'partner_id' => $product->partner_id,
             'start_date' => $startDate,
             'end_date' => $endDate,
             'duration' => $request->duration,
@@ -235,7 +235,7 @@ class OrderController extends Controller
                 'contact_number' => 'required|string',
                 'pickup_time' => 'required|string',
                 'notes' => 'nullable|string',
-                'return_information' => 'nullable|string', // allow this field
+                'return_information' => 'nullable|string',
             ]);
 
             // Ensure relationships are loaded

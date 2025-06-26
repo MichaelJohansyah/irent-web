@@ -78,7 +78,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('dashboard/edit-product/{id}', [ProductController::class, 'edit'])->name('products.edit');
         Route::post('dashboard/edit-product/{id}', [ProductController::class, 'update'])->name('products.update');
         Route::delete('dashboard/edit-product/{id}', [ProductController::class, 'destroy'])->name('products.delete');
-        Route::get('/orders/partner-list', [\App\Http\Controllers\OrderController::class, 'partnerOrderList'])->name('orders.partnerList');
+        Route::get('/orders/partner-list', [OrderController::class, 'partnerOrderList'])->name('orders.partnerList');
     });
     
     // Order routes
@@ -86,10 +86,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::post('/orders/{order}/partner-confirm', [OrderController::class, 'partnerConfirm'])->name('orders.partnerConfirm');
     Route::post('/orders/{order}/partner-cancel', [OrderController::class, 'partnerCancel'])->name('orders.partnerCancel');
-    Route::post('/orders/{order}/partner-pickedup', [\App\Http\Controllers\OrderController::class, 'partnerPickedUp'])->name('orders.partnerPickedUp');
-    Route::post('/orders/{order}/partner-finish', [\App\Http\Controllers\OrderController::class, 'partnerFinish'])->name('orders.partnerFinish');
-    // Partner: set order to return_now
-    Route::post('/orders/{order}/partner-return-now', [\App\Http\Controllers\OrderController::class, 'partnerReturnNow'])->middleware(['auth']);
+    Route::post('/orders/{order}/partner-pickedup', [OrderController::class, 'partnerPickedUp'])->name('orders.partnerPickedUp');
+    Route::post('/orders/{order}/partner-finish', [OrderController::class, 'partnerFinish'])->name('orders.partnerFinish');
+    Route::post('/orders/{order}/partner-return-now', [OrderController::class, 'partnerReturnNow'])->middleware(['auth']);
 });
 
 // Additional route files

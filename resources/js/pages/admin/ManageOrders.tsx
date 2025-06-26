@@ -52,7 +52,6 @@ export default function ManageOrders({ orders }: ManageOrdersProps) {
     const [selectedOrder, setSelectedOrder] = useState<(Order & { return_information?: string }) | null>(null);
     const [updating, setUpdating] = useState<number | null>(null);
     const [search, setSearch] = useState('');
-    // Track which order is being edited (for status dropdown)
     const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
 
     const handleStatusChange = (orderId: number, newStatus: Order['status']) => {
@@ -95,7 +94,6 @@ export default function ManageOrders({ orders }: ManageOrdersProps) {
                             key={order.id}
                             className="bg-card text-foreground border-sidebar-border/70 hover:bg-muted/40 flex cursor-pointer flex-col items-center gap-4 rounded-xl border p-4 shadow md:flex-row"
                             onClick={e => {
-                                // Only open summary if not clicking the dropdown
                                 if (
                                     e.target instanceof HTMLElement &&
                                     (e.target.tagName === 'SELECT' || e.target.closest('select'))

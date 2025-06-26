@@ -11,13 +11,11 @@ use App\Http\Resources\NotificationResource;
 use App\Models\Notification;
 
 
-
 Route::get('/user', function (Request $request) {
     return new UserResource($request->user());
 })->middleware('auth:sanctum');
 
-Route::get('/users', function () { // Request $request was unused
-    // This route now requires admin privileges
+Route::get('/users', function () {
     return UserResource::collection(User::paginate(15));
     })->middleware(['auth:sanctum', 'admin']);
 
@@ -25,7 +23,7 @@ Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'email' => ['required', 'email'],
         'password' => ['required'],
-        'device_name' => ['required', 'string'], // Device name for the token
+        'device_name' => ['required', 'string'],
     ]);
 
     if (!Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']])) {

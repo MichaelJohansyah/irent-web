@@ -266,7 +266,7 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
                 credentials: 'same-origin',
                 body: JSON.stringify({
                     status: 'finished',
-                    return_information: form.return_information, // send return_information
+                    return_information: form.return_information,
                 }),
             });
             const data = await res.json();
@@ -283,7 +283,6 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
         }
         setProcessing(false);
     };
-    // Add manual handler for partner to set status to 'return_now'
     const handleSetReturnNow = async () => {
         if (!selectedOrder) return;
         setProcessing(true);

@@ -70,7 +70,6 @@ class ProductController extends Controller
     public function edit($id)
     {
         $product = Product::findOrFail($id);
-        // Optionally, check if the user is the owner
         if (Auth::user()->id !== $product->partner_id) {
             abort(403);
         }
@@ -131,5 +130,4 @@ class ProductController extends Controller
         return ProductResource::collection($products);
     }
 
-    // (Optional) Add methods for create, store, edit, update, destroy as needed
 }

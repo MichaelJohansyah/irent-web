@@ -24,7 +24,7 @@ interface Order {
     contact_number?: string;
     pickup_time?: string;
     notes?: string;
-    return_information?: string; // add this field for summary
+    return_information?: string;
 }
 
 interface HistoryProps {
@@ -33,7 +33,7 @@ interface HistoryProps {
 
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID'); // Indonesian format: dd/mm/yyyy
+    return date.toLocaleDateString('id-ID');
 };
 
 export default function History({ orders }: HistoryProps) {
