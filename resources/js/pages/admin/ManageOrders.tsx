@@ -32,6 +32,7 @@ const statusOptions = [
     { value: 'rented', label: 'Rented' },
     { value: 'return_now', label: 'Return Now' },
     { value: 'finished', label: 'Finished' },
+    { value: 'canceled', label: 'Canceled' }, // Ensure canceled is included
 ];
 
 const statusColors: Record<Order['status'], string> = {

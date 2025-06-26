@@ -139,7 +139,8 @@ class OrderController extends Controller
     {
         try {
             $request->validate([
-                'status' => 'required|in:waiting,ready,rented,return_now,finished'
+                // Add 'canceled' to the allowed statuses
+                'status' => 'required|in:waiting,ready,rented,return_now,finished,canceled'
             ]);
             
             // Ensure relationships are loaded
