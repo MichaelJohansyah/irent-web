@@ -37,7 +37,7 @@ const statusOptions = [
 
 const statusColors: Record<Order['status'], string> = {
     waiting: 'bg-gray-800 text-white', // dark grey
-    ready: 'bg-blue-600 text-white',   // blue
+    ready: 'bg-blue-600 text-white', // blue
     rented: 'bg-green-600 text-white', // green
     return_now: 'bg-yellow-400 text-gray-900', // yellow
     finished: 'bg-white text-gray-900 border border-gray-300', // white
@@ -94,11 +94,8 @@ export default function ManageOrders({ orders }: ManageOrdersProps) {
                         <div
                             key={order.id}
                             className="bg-card text-foreground border-sidebar-border/70 hover:bg-muted/40 flex cursor-pointer flex-col items-center gap-4 rounded-xl border p-4 shadow md:flex-row"
-                            onClick={e => {
-                                if (
-                                    e.target instanceof HTMLElement &&
-                                    (e.target.tagName === 'SELECT' || e.target.closest('select'))
-                                ) {
+                            onClick={(e) => {
+                                if (e.target instanceof HTMLElement && (e.target.tagName === 'SELECT' || e.target.closest('select'))) {
                                     setEditingOrderId(order.id);
                                     return;
                                 }
@@ -134,9 +131,9 @@ export default function ManageOrders({ orders }: ManageOrdersProps) {
                                         className={`ml-2 rounded border px-2 py-1 text-xs font-medium transition-colors duration-150 outline-none ${statusColors[order.status]}`}
                                         value={order.status}
                                         disabled={updating === order.id}
-                                        onChange={e => handleStatusChange(order.id, e.target.value as Order['status'])}
+                                        onChange={(e) => handleStatusChange(order.id, e.target.value as Order['status'])}
                                         style={{ minWidth: 110 }}
-                                        onClick={e => {
+                                        onClick={(e) => {
                                             // Prevent parent div onClick when clicking dropdown
                                             e.stopPropagation();
                                             setEditingOrderId(order.id);
