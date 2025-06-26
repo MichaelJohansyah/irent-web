@@ -1,5 +1,6 @@
 import { Dialog as ConfirmDialog, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
+import { Head } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
 interface Order {
@@ -315,6 +316,7 @@ export default function PartnerOrders({ orders }: PartnerOrdersProps) {
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Partner Orders', href: '/orders/partner-list' }]}>
+            <Head title="Order List" />
             <div className="p-8">
                 <h1 className="mb-6 text-2xl font-semibold">Partner Orders</h1>
                 <div className="space-y-4">

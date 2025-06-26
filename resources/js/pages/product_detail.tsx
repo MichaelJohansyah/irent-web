@@ -1,6 +1,6 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { BreadcrumbItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
 interface Product {
@@ -39,7 +39,9 @@ export default function ProductDetail({ product }: ProductDetailProps) {
     ];
 
     return (
-        <AppSidebarLayout breadcrumbs={breadcrumbs}>
+        <>
+            <Head title={`${product.name} - Product Detail`} />
+            <AppSidebarLayout breadcrumbs={breadcrumbs}>
             <div className="h-full w-full p-4">
                 <div className="bg-card/80 border-border/50 flex w-full flex-col gap-8 rounded-2xl border p-4 shadow-2xl backdrop-blur-sm md:flex-row md:p-8">
                     {/* Product Image Section */}
@@ -171,5 +173,6 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 </div>
             </div>
         </AppSidebarLayout>
+        </>
     );
 }

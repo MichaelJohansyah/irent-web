@@ -1,10 +1,12 @@
 import React from 'react';
 import { CheckCircle, ArrowLeft, Home, MessageCircle } from 'lucide-react';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
 export default function FeedbackConfirmation() {
   return (
-    <div className="min-h-screen bg-background text-foreground py-12 px-4">
+    <>
+      <Head title="Feedback Sent" />
+      <div className="min-h-screen bg-background text-foreground py-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Success Animation */}
         <div className="text-center mb-12">
@@ -92,6 +94,7 @@ export default function FeedbackConfirmation() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
