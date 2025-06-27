@@ -1,5 +1,5 @@
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 interface Product {
@@ -71,9 +71,7 @@ export default function Confirm(props: any) {
     };
 
     return (
-        <>
-            <Head title="Confirm Order" />
-            <AppSidebarLayout>
+        <AppSidebarLayout>
             <div className="flex h-full w-full items-center justify-center p-4">
                 <div className="bg-card/80 border-border/50 flex w-full max-w-2xl flex-col gap-8 rounded-2xl border p-4 shadow-2xl backdrop-blur-sm md:p-8">
                     <h1 className="text-foreground mb-2 text-2xl font-bold">Konfirmasi Pesanan</h1>
@@ -136,6 +134,5 @@ export default function Confirm(props: any) {
                 </div>
             </div>
         </AppSidebarLayout>
-        </>
     );
 }

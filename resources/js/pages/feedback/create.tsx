@@ -1,4 +1,4 @@
-import { useForm, Head } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Send, User, FileText, CheckCircle, X } from 'lucide-react';
 
@@ -27,9 +27,7 @@ export default function Create() {
   }, [wasSuccessful]);
 
   return (
-    <>
-      <Head title="Send Feedback" />
-      <div className="min-h-screen bg-background text-foreground py-12 px-4">
+    <div className="min-h-screen bg-background text-foreground py-12 px-4">
       {/* Notification */}
       {showNotification && (
         <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 fade-in duration-300">
@@ -163,6 +161,5 @@ export default function Create() {
         </div>
       </div>
     </div>
-    </>
   );
 }

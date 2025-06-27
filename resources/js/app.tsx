@@ -5,18 +5,10 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 
-const appName = import.meta.env.VITE_APP_NAME || 'iRent';
-
-// Function to create dynamic title based on page name
-const createDynamicTitle = (title: string) => {
-    if (!title || title === 'Laravel') {
-        return `${appName}`;
-    }
-    return `${title} - ${appName}`;
-};
+const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
-    title: createDynamicTitle,
+    title: (title) => `${title} - ${appName}`,
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
         const root = createRoot(el);

@@ -1,6 +1,5 @@
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import { Search } from 'lucide-react';
 
@@ -133,7 +132,6 @@ export default function History({ orders }: HistoryProps) {
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Order List', href: '/orders' }]}>
-            <Head title="Order List" />
             <div className="p-8">
                 <h1 className="mb-6 text-2xl font-semibold">Order List</h1>
                 
