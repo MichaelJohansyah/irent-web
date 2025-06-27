@@ -10,12 +10,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Define the Product type
 interface Product {
     id: number;
     name: string;
     description: string;
-    // Add other fields as needed
 }
 
 interface DashboardProps {

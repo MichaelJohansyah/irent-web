@@ -43,6 +43,6 @@ class FeedbackController extends Controller
 
     public function confirmation()
     {
-    return Inertia::render('feedback/confirmation'); // or wherever you put the component
+    return Inertia::render('feedback/confirmation');
     }
 }

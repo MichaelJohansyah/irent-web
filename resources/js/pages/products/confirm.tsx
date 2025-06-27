@@ -21,7 +21,6 @@ interface ConfirmProps {
 
 export default function Confirm(props: any) {
     const { product } = props;
-    // Read duration and totalPrice from URL query params
     const [duration, setDuration] = useState(1);
     const [totalPrice, setTotalPrice] = useState(product.rent_price);
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -34,7 +33,6 @@ export default function Confirm(props: any) {
         if (!isNaN(t) && t > 0) setTotalPrice(t);
     }, []);
     useEffect(() => {
-        // Calculate end date based on start date and duration
         const start = new Date(startDate);
         const end = new Date(start);
         end.setDate(start.getDate() + duration - 1);
@@ -74,7 +72,7 @@ export default function Confirm(props: any) {
         <AppSidebarLayout>
             <div className="flex h-full w-full items-center justify-center p-4">
                 <div className="bg-card/80 border-border/50 flex w-full max-w-2xl flex-col gap-8 rounded-2xl border p-4 shadow-2xl backdrop-blur-sm md:p-8">
-                    <h1 className="text-foreground mb-2 text-2xl font-bold">Konfirmasi Pesanan</h1>
+                    <h1 className="text-foreground mb-2 text-2xl font-bold">Confirm Order</h1>
                     <div className="flex flex-col items-center gap-6 md:flex-row">
                         <div className="from-muted to-background flex h-40 w-40 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br">
                             <img
@@ -103,7 +101,7 @@ export default function Confirm(props: any) {
                             </div>
                             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
                                 <div className="flex flex-col gap-1">
-                                    <label className="text-foreground font-semibold">Tanggal Mulai</label>
+                                    <label className="text-foreground font-semibold">Start Date</label>
                                     <input
                                         type="date"
                                         value={startDate}
@@ -113,7 +111,7 @@ export default function Confirm(props: any) {
                                     {errors.start_date && <p className="text-sm text-red-500">{errors.start_date}</p>}
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                    <label className="text-foreground font-semibold">Tanggal Selesai</label>
+                                    <label className="text-foreground font-semibold">End Date</label>
                                     <input
                                         type="date"
                                         value={endDate}
@@ -128,7 +126,7 @@ export default function Confirm(props: any) {
                             disabled={processing}
                             className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg px-4 py-3 text-lg font-bold shadow-lg transition-all duration-300"
                         >
-                            {processing ? 'Processing...' : 'Konfirmasi Pesanan'}
+                            {processing ? 'Processing...' : 'Confirm Order'}
                         </button>
                     </form>
                 </div>

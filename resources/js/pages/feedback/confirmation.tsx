@@ -30,7 +30,7 @@ export default function FeedbackConfirmation() {
 
           <div className="p-8">
             <div className="space-y-6">
-              {[ // Info steps
+              {[
                 {
                   step: '1',
                   title: 'Review Process',

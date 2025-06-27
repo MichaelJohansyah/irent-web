@@ -1,157 +1,161 @@
-# WAJIB BACA KALAU MAU RUN PROJECT
-
-This project is a starter kit using **Laravel** (backend) and **React** (frontend) with **Inertia.js** and **Vite**.  
-It supports authentication, MySQL database, and is ready for local development on Windows (with or without Laragon).
-
----
+# irent-web Project - Installation & Usage Guide
 
 ## Requirements
 
-- [PHP 8.2+](https://www.php.net/downloads.php)
-- [Composer](https://getcomposer.org/)
-- [Node.js & npm](https://nodejs.org/)
-- [MySQL](https://www.mysql.com/) (easiest with [Laragon](https://laragon.org/) or [XAMPP](https://www.apachefriends.org/))
-- (Optional) [Git](https://git-scm.com/)
-
----
+- PHP 8.2+
+- Composer
+- Node.js 18+
+- npm
+- MySQL (or SQLite for local dev)
+- (Optional) Docker
 
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
+git clone <your-repo-url>
+cd irent-web
 ```
-
----
 
 ## 2. Install Dependencies
 
-**Backend (Laravel):**
+**Backend:**
+
 ```bash
 composer install
 ```
 
-**Frontend (React/Vite):**
+**Frontend:**
+
 ```bash
 npm install
 ```
 
----
-
 ## 3. Environment Setup
 
-- Copy `.env.example` to `.env` if `.env` does not exist:
-  ```bash
-  cp .env.example .env
-  ```
-  On Windows, use:
-  ```powershell
-  copy .env.example .env
-  ```
-
+- Copy `.env.example` to `.env`:
+    - Windows: `copy .env.example .env`
+    - Linux/Mac: `cp .env.example .env`
 - Generate Laravel app key:
-  ```bash
-  php artisan key:generate
-  ```
 
----
+```bash
+php artisan key:generate
+```
+
+- Edit `.env` for your DB (MySQL, SQLite, or Neon/PostgreSQL).
+
+**Example for MySQL:**
+
+```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=your_db
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+**Example for Neon (PostgreSQL):**
+
+```
+DB_CONNECTION=pgsql
+DB_HOST=ep-xxxx-xxxx.us-east-2.aws.neon.tech
+DB_PORT=5432
+DB_DATABASE=your_db
+DB_USERNAME=your_user
+DB_PASSWORD=your_password
+DB_SCHEMA=public
+```
+
+- You can find your Neon connection details in the Neon dashboard (https://neon.tech/). Use the `psql` connection string and map the values as above.
+- If you use SSL (recommended), add:
+
+```
+DB_SSLMODE=require
+```
+
+- (Optional) For local dev, you can still use MySQL or SQLite. See `.env.example` for templates.
 
 ## 4. Database Setup
 
-- Make sure MySQL is running (start Laragon/XAMPP if using).
-- Create a database (e.g., `my_database`) using phpMyAdmin or MySQL CLI.
-- Edit `.env` and set:
-  ```
-  DB_CONNECTION=mysql
-  DB_HOST=127.0.0.1
-  DB_PORT=3306
-  DB_DATABASE=my_database
-  DB_USERNAME=root
-  DB_PASSWORD=
-  ```
-  *(Adjust `DB_USERNAME` and `DB_PASSWORD` if needed.)*
+- Create your database (phpMyAdmin, CLI, etc.)
+- Run migrations:
 
-- Run migrations to create tables:
-  ```bash
-  php artisan migrate
-  ```
-
----
+```bash
+php artisan migrate
+```
 
 ## 5. Running the Project
 
-**Start Laravel backend:**
+**Backend:**
+
 ```bash
 php artisan serve
 ```
-- The backend will be available at [http://localhost:8000](http://localhost:8000).
 
-**Start React frontend (Vite):**
+**Frontend:**
+
 ```bash
 npm run dev
 ```
-- The frontend will be available at the URL shown in the terminal (usually [http://localhost:5173](http://localhost:5173)).
 
-- Jangan lupa dua command ini harus dijalankan sama-sama di terminal yang berbeda ya.
----
+- Open the URLs shown in the terminal (usually http://localhost:8000 and http://localhost:5173)
 
-## 6. Authentication
+## 6. Docker (Optional)
 
-- Visit `/register` to create a new account.
-- Visit `/login` to log in.
-- Email verification and password reset are supported.
+- Build and run:
 
----
+```bash
+docker build -t irent-web .
+docker run -p 8080:80 irent-web
+```
 
-## 7. Useful Commands
+## 7. Queue & Notifications
 
-- **Run tests:**  
-  ```bash
-  php artisan test
-  ```
-- **Format code:**  
-  ```bash
-  npm run format
-  ```
-- **Lint frontend:**  
-  ```bash
-  npm run lint
-  ```
+- If you use notifications/jobs, run the queue worker:
 
----
+```bash
+php artisan queue:listen
+```
 
-## 8. Troubleshooting
+## 8. SSR (Optional)
 
-- **Database errors?**  
-  Make sure MySQL is running and `.env` settings are correct.
-- **Port conflicts?**  
-  Change the port in `.env` or use `php artisan serve --port=8080`.
-- **Node/npm errors?**  
-  Make sure you have Node.js 18+ and run `npm install` again.
+- To build and run with SSR:
 
----
+```bash
+npm run build:ssr
+```
 
-## 9. Contributing
+## 9. Testing & Linting
 
-- Fork the repo, create a new branch, and submit a pull request.
-- Please run tests and lint before submitting.
+- Run PHP tests:
 
----
+```bash
+php artisan test
+```
 
-## 10. Additional Notes
+- Lint/format frontend:
 
-- You do **not** need to move the project to Laragon’s `www` folder.  
-  Just make sure MySQL is running.
-- If you want to use Laragon’s pretty URLs, you can move the project to `C:\laragon\www\your-repo-name`.
+```bash
+npm run lint
+npm run format
+```
 
----
+## 10. Troubleshooting
 
-## 11. Resources
+- **DB errors:** Check `.env` and DB is running
+- **Port conflicts:** Change port in `.env` or use `php artisan serve --port=8080`
+- **Node/npm errors:** Ensure Node.js 18+, run `npm install` again
 
-- [Laravel Documentation](https://laravel.com/docs)
-- [React Documentation](https://react.dev/)
-- [Inertia.js Documentation](https://inertiajs.com/)
-- [Laragon Documentation](https://laragon.org/docs.html)
+## 11. Contributing
+
+- Fork, branch, PR. Run tests and lint before submitting.
+
+## 12. Resources
+
+- [Laravel Docs](https://laravel.com/docs)
+- [React Docs](https://react.dev/)
+- [Inertia.js Docs](https://inertiajs.com/)
+- [Laragon Docs](https://laragon.org/docs.html)
 
 ---
 

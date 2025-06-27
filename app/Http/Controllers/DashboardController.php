@@ -15,7 +15,6 @@ class DashboardController extends Controller
         $products = Product::all();
 
         if ($user->role === 'admin') {
-            // Redirect to admin users page instead of AdminDashboard
             return redirect()->route('admin.users');
         } elseif ($user->role === 'partner') {
             $partnerProducts = Product::where('partner_id', $user->id)->get();

@@ -14,9 +14,6 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role, 
-            // Add other safe-to-expose attributes
-            // Example: 'is_admin' => $this->is_admin,
-            // Example: 'is_verified' => (bool) $this->is_verified,
             'email_verified_at' => $this->email_verified_at ? $this->email_verified_at->toIso8601String() : null,
             'created_at' => $this->created_at->toIso8601String(),
         ];

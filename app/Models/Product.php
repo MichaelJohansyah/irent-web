@@ -19,7 +19,6 @@ class Product extends Model
     ];
 
     protected $casts = [
-        // Remove specs and color_options casts
     ];
 
     public function partner()
